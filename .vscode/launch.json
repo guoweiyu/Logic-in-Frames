@@ -20,13 +20,15 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": false,
-            "cwd": "/home/yejinhui/Projects/VisualSearch",
+            "cwd": "/home/guoweiyu/new-VL-Haystack/VL-Haystack",
             "env": {
-                "YOLOFolder": "${workspaceFolder}/YOLOWorld",
+                "YOLOFolder": "${workspaceFolder}/YOLO-World",
                 "WANDB_API_KEY": "943ecb8d26fc2b3879cbc2d667414974906aebb9",
-                "PYTHONPATH": "/home/guoweiyu/new-VL-Haystack/VL-Haystack:${env:PYTHONPATH}",
+                "PYTHONPATH": "/home/guoweiyu/new-VL-Haystack/VL-Haystack:/home/guoweiyu/new-VL-Haystack/VL-Haystack/YOLO-World:${env:PYTHONPATH}",
                 "NCCL_SOCKET_IFNAME": "eth2",
                 "WANDB_MODE": "dryrun",
+                "OPENAI_API_KEY": "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",
+                
                 // "CUDA_VISIBLE_DEVICES": "2,3,4,5,6,7"
                 
             },

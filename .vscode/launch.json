@@ -5,15 +5,6 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python 调试程序: 当前文件",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${file}",
-            "console": "integratedTerminal"
-        },
-
-
-        {
             "name": "Runing with YOLO",
             "type": "debugpy",
             "request": "launch",
@@ -42,6 +33,15 @@
                 // /usr/local/lib/python3.10/dist-packages/mmyolo/__init__.py
             ]
         },
+
+        {
+            "name": "Python 调试程序: 当前文件",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal"
+        },
+
 
     ]
 }

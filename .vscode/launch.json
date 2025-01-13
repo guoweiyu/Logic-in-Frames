@@ -8,7 +8,7 @@
             "name": "Runing with YOLO",
             "type": "debugpy",
             "request": "launch",
-            "program": "${file}",
+            "program": "${file}", //"get_Tstar_searching_results.py", //"${file}",
             "console": "integratedTerminal",
             "justMyCode": false,
             "cwd": "/home/guoweiyu/new-VL-Haystack/VL-Haystack",

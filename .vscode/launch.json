@@ -11,11 +11,11 @@
             "program": "${file}", //"get_Tstar_searching_results.py", //"${file}",
             "console": "integratedTerminal",
             "justMyCode": false,
-            "cwd": "/home/guoweiyu/new-VL-Haystack/VL-Haystack",
+            "cwd": "/data/guoweiyu/new-VL-Haystack/VL-Haystack",
             "env": {
                 "YOLOFolder": "${workspaceFolder}/YOLO-World",
                 "WANDB_API_KEY": "943ecb8d26fc2b3879cbc2d667414974906aebb9",
-                "PYTHONPATH": "/home/guoweiyu/new-VL-Haystack/VL-Haystack:/home/guoweiyu/new-VL-Haystack/VL-Haystack/YOLO-World:${env:PYTHONPATH}",
+                "PYTHONPATH": "/data/guoweiyu/new-VL-Haystack/VL-Haystack:/data/guoweiyu/new-VL-Haystack/VL-Haystack/YOLO-World:${env:PYTHONPATH}",
                 "NCCL_SOCKET_IFNAME": "eth2",
                 "WANDB_MODE": "dryrun",
                 "OPENAI_API_KEY": "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",
@@ -24,8 +24,8 @@
                 
             },
             "args": [
-                // "--json_file", "/home/yejinhui/Projects/VisualSearch/data-annotation-kfs/data/lvbench/json_results/3600_TSearching_8frames.json"
-                // "--json_file", "/home/yejinhui/Projects/VisualSearch/data-annotation-kfs/data/lvbench/datasets/KFS_lvbench_XL_256.json",
+                // "--question", "Who did I talk to in  the living room?",
+                // "--options", "",
                 // "--video_folder", "playground/data/Ego4D/ego4d_data/v1/256p",
                 // "--model_name_or_path", "pretrained/LLaVA-NeXT-Video-7B-DPO",
                 // "--image_aspect_ratio", "square",

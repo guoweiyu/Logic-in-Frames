@@ -4,7 +4,6 @@ get_Tstar_key_frames.py
 2nd step of the pipeline: perform key frame search using T* on videos based on grounding objects
 '''
 
-import os
 import sys
 import argparse
 import json

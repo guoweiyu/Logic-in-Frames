@@ -4,7 +4,6 @@ get_Tstar_grounding_objects.py
 1st step of the pipeline: get grounding objects on each video & question pair
 '''
 
-import os
 import json
 import sys
 import argparse

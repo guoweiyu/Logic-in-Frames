@@ -60,7 +60,8 @@ class TStarFramework:
         prefix: str = 'stitched_image',
         config_path: Optional[str] = None,
         checkpoint_path: Optional[str] = None,
-        device: str = "cuda:0"
+        device: str = "cuda:7",
+        update_method: str = "spline"
     ):
         """
         Initialize VideoSearcher.
@@ -97,6 +98,7 @@ class TStarFramework:
         self.config_path = config_path
         self.checkpoint_path = checkpoint_path
         self.device = device
+        self.update_method = update_method
 
         self.video_id=self.video_path.split("/")[-1].split(".")[0]
         self.output_dir = os.path.join(self.output_dir, self.video_id)  # 视频保存路径
@@ -105,6 +107,7 @@ class TStarFramework:
         logger.info("VideoSearcher initialized successfully.")
 
         self.results = {}
+        
 
     def run(self):
         """
@@ -113,13 +116,9 @@ class TStarFramework:
         # Use Grounder to get target and cue objects
         # 通过简单的prompt, 以文本和video作为输入，使用gpt选择出目标object和相关project
         target_objects, cue_objects = self.get_grounded_objects()
-
         # Initialize TStarSearcher
         video_searcher  = self.set_searching_targets(target_objects, cue_objects)
-
-        
         logger.info(f"TStarSearcher initialized successfully for video {self.video_path}.")
-
         # Perform search
         all_frames, time_stamps = self.perform_search(video_searcher)
 
@@ -135,7 +134,7 @@ class TStarFramework:
 
         logger.info("VideoSearcher completed successfully.")
 
-    def get_grounded_objects(self) -> Tuple[List[str], List[str]]:
+    def get_grounded_objects(self, prompt_type : str, upload_video : int) -> Tuple[List[str], List[str], List[Tuple[str]]]:
         """
         Use Grounder to obtain target and cue objects.
 
@@ -144,20 +143,31 @@ class TStarFramework:
         """
         # Example code; should be implemented based on Grounder's interface
         # For example:
-        target_objects, cue_objects = self.grounder.inference_query_grounding(
-            video_path=self.video_path,
-            question=self.question
-        )
-        # Here, assuming fixed target and cue objects
-        # target_objects = ["couch"]  # Target objects to find
-        # cue_objects = ["TV", "chair"]  # Cue objects
-
+        if prompt_type == "cot":
+            target_objects, cue_objects, relations = self.grounder.inference_query_grounding2(
+                video_path=self.video_path,
+                question=self.question,
+                options=self.options,
+                upload_video=upload_video
+            )
+        else:
+            target_objects, cue_objects = self.grounder.inference_query_grounding(
+                video_path=self.video_path,
+                question=self.question,
+                options=self.options,
+                upload_video=upload_video
+            )
+            relations = []
+        
         logger.info(f"Target objects: {target_objects}")
         logger.info(f"Cue objects: {cue_objects}")
-        self.results["Searching_Objects"] = {"target_objects": target_objects, "cue_objects": cue_objects}
-        return target_objects, cue_objects
+        self.results["Searching_Objects"] = {"target_objects": target_objects,
+                                             "cue_objects": cue_objects,
+                                             "relations": relations}
+        
+        return target_objects, cue_objects, relations
     
-    def set_searching_targets(self, target_objects, cue_objects):
+    def set_searching_targets(self, target_objects, cue_objects, relations):
         """
         Initialize and configure the TStarSearcher for video object search.
 
@@ -180,12 +190,14 @@ class TStarFramework:
             video_path=self.video_path,
             target_objects=target_objects,
             cue_objects=cue_objects,
+            relations=relations,
             search_nframes=self.search_nframes,
             image_grid_shape=(self.grid_rows, self.grid_cols),
             output_dir=self.output_dir,
             confidence_threshold=self.confidence_threshold,
             search_budget=self.search_budget,
-            yolo_scorer=self.yolo_scorer
+            yolo_scorer=self.yolo_scorer,
+            update_method=self.update_method
         )
 
         return video_searcher
@@ -202,10 +214,11 @@ class TStarFramework:
         Returns:
             Tuple[List[np.ndarray], List[float]]: List of frames and their corresponding timestamps.
         """
-        all_frames, time_stamps = video_searcher.search_with_visualization()
+        all_frames, time_stamps, num_iterations = video_searcher.search_with_visualization()
         logger.info(f"Found {len(all_frames)} frames, timestamps: {time_stamps}")
         
         self.results['timestamps'] = time_stamps
+        self.results['num_iterations'] = num_iterations
         return all_frames, time_stamps
 
     def perform_qa(self, frames: List[np.ndarray]) -> str:
@@ -521,6 +534,7 @@ class TStarFramework:
     def set_to_3D(self):
 
         pass
+
 import seaborn as sns
 def initialize_yolo(
     config_path: str,
@@ -564,7 +578,7 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument('--options', type=str, default="A) Red\nB) Black\nC) Green\nD) White\n", help='Multiple-choice options for the question, e.g., "A) Option1\nB) Option2\nC) Option3\nD) Option4"')
     parser.add_argument('--config_path', type=str, default="./YOLOWorld/configs/pretrain/yolo_world_v2_xl_vlpan_bn_2e-3_100e_4x8gpus_obj365v1_goldg_train_lvis_minival.py", help='Path to the YOLO configuration file.')
     parser.add_argument('--checkpoint_path', type=str, default="./pretrained/YOLO-World/yolo_world_v2_xl_obj365v1_goldg_cc3mlite_pretrain-5daf1395.pth", help='Path to the YOLO model checkpoint.')
-    parser.add_argument('--device', type=str, default="cuda:0", help='Device for model inference (e.g., "cuda:0" or "cpu").')
+    parser.add_argument('--device', type=str, default="cuda:7", help='Device for model inference (e.g., "cuda:0" or "cpu").')
     parser.add_argument('--search_nframes', type=int, default=8, help='Number of top frames to return.')
     parser.add_argument('--grid_rows', type=int, default=4, help='Number of rows in the image grid.')
     parser.add_argument('--grid_cols', type=int, default=4, help='Number of columns in the image grid.')
@@ -625,5 +639,5 @@ def main():
     
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":                                              
     main()

@@ -1,5 +1,3 @@
-
-
 from typing import List
 import math
 from typing import List, Dict
@@ -13,8 +11,6 @@ try:
 except ImportError:
     cv2 = None
     print("Warning: OpenCV is not installed, video frame extraction will not work.")
-
-
 
 def encode_image_to_base64(image) -> str:
     """
@@ -36,37 +32,45 @@ def encode_image_to_base64(image) -> str:
     except Exception as e:
         raise ValueError(f"Error encoding image: {str(e)}")
 
-def load_video_frames(video_path: str, num_frames: int = 8) -> List[Image.Image]:
+# def load_video_frames(video_path: str, num_frames: int = 8) -> List[Image.Image]:
+def load_video_frames(video_path: str, num_frames: int = 32) -> List[Image.Image]:   # Rebuttal Change 
     """
-    从视频中读取 num_frames 帧并返回 PIL.Image 列表。
+    从视频或图像文件加载帧。
     """
-    if cv2 is None:
-        raise ImportError("OpenCV is not installed, cannot load video frames.")
-
-    frames = []
-    cap = cv2.VideoCapture(video_path)
-    if not cap.isOpened():
-        raise ValueError(f"Cannot open video: {video_path}")
-
-    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    if total_frames == 0:
-        cap.release()
-        raise ValueError("Video has zero frames or could not retrieve frame count.")
-    
-    num_frames = min(num_frames, total_frames)
-    step = total_frames / num_frames
-
-    for i in range(num_frames):
-        frame_index = int(math.floor(i * step))
-        cap.set(cv2.CAP_PROP_POS_FRAMES, frame_index)
-        ret, frame = cap.read()
-        if not ret:
-            break
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        frames.append(Image.fromarray(frame_rgb))
-
-    cap.release()
-    return frames
+    try:
+        if video_path.lower().endswith(('.png', '.jpg', '.jpeg')):
+            # 如果是图像文件，直接加载并复制
+            image = Image.open(video_path)
+            if image.mode != "RGB":
+                image = image.convert("RGB")
+            return [image] * num_frames  # 返回多个相同的图像副本
+            
+        elif video_path.lower().endswith(('.mp4', '.avi', '.mov')):
+            # 如果是视频文件，提取帧
+            cap = cv2.VideoCapture(video_path)
+            frames = []
+            total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+            if total_frames == 0:
+                raise ValueError(f"No frames found in video: {video_path}")
+                
+            step = max(1, total_frames // num_frames)
+            for i in range(0, total_frames, step):
+                cap.set(cv2.CAP_PROP_POS_FRAMES, i)
+                ret, frame = cap.read()
+                if ret:
+                    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                    frame = Image.fromarray(frame)
+                    frames.append(frame)
+                if len(frames) >= num_frames:
+                    break
+            cap.release()
+            return frames[:num_frames]
+        else:
+            raise ValueError(f"Unsupported file format: {video_path}")
+            
+    except Exception as e:
+        print(f"Error loading frames from {video_path}: {str(e)}")
+        raise
 
 
 def save_as_gif(images, output_gif_path):
@@ -278,6 +282,23 @@ def render_frames_in_3d(video_path, output_path, num_frames=10, x_angle=290, y_a
 
 import cv2
 import os
+def extract_frames1(video_path, num_frames=8):
+    cap = cv2.VideoCapture(video_path)
+    frames = []
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    indices = np.linspace(0, total_frames - 1, num_frames, dtype=int)
+
+    for i in indices:
+        cap.set(cv2.CAP_PROP_POS_FRAMES, i)
+        ret, frame = cap.read()
+        if ret:
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            frames.append(Image.fromarray(frame))
+
+    cap.release()
+    return frames
+
+
 def extract_frames(video_path, output_dir, fps=1):
     """
     Extract frames from a video at a specified frame rate (1 fps by default).

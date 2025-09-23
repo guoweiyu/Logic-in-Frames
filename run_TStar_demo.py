@@ -87,9 +87,6 @@ def main():
     print(f"Frame Timestamps: {searcher.results['timestamps']}")
     print(f"Answer: {searcher.results['answer']}")
 
-
-
-
 if __name__ == "__main__":
     """
     TStarSearcher: Comprehensive Video Frame Search Tool

@@ -4,37 +4,19 @@ get_Tstar_key_frames.py
 2nd step of the pipeline: perform key frame search using T* on videos based on grounding objects
 '''
 
-import pandas as pd
-import os
-import string
-import json
 import os
 import sys
-import cv2
-import torch
-import copy
-import logging
 import argparse
 import json
 import numpy as np
-import matplotlib.pyplot as plt
-from dataclasses import dataclass, field
-from typing import List, Optional, Tuple
-from decord import VideoReader, cpu
-from scipy.interpolate import UnivariateSpline
+
+sys.path.append('./')
+sys.path.append('./YOLO-World/')
 
 # Import custom TStar interfaces
 from TStar.interface_llm import TStarUniversalGrounder
 from TStar.interface_yolo import YoloInterface
-from TStar.interface_searcher import TStarSearcher
 from TStar.TStarFramework import TStarFramework, initialize_yolo  # better to keep interfaces separate for readability
-
-
-
-import os
-import ast
-from datasets import load_dataset
-from typing import List
 import datetime
 
 FILTER_TASK_TYPES = ['OCR Problems', 'Counting Problem', 'Temporal Perception', 'Information Synopsis', 'Temporal Reasoning']
@@ -43,229 +25,6 @@ nowTime = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
 
 v_p = "/data/guoweiyu/new-VL-Haystack/VL-Haystack/Datasets/LVBench/videos/BtaVRhoLpC0.mp4"
 np.random.seed(2025)
-
-def LVHaystack2TStar_json(dataset_meta: str = "LVHaystack/LongVideoHaystack", 
-                          video_root: str = "Datasets/Ego4D_videos") -> List[dict]:
-    """Load and transform the dataset into the required format for T*.
-
-    The output JSON structure is like:
-    [
-        {
-            "video_path": "path/to/video1.mp4",
-            "question": "What is the color of my couch?",
-            "options": "A) Red\nB) Black\nC) Green\nD) White\n",
-            // More user-defined keys...
-        },
-        // More entries...
-    ]
-    """
-    # Load the dataset from the given source
-    dataset = load_dataset(dataset_meta)
-    
-    # Extract the 'test' split from the dataset
-    LVHaystact_testset = dataset["test"]
-
-    # List to hold the transformed data
-    TStar_format_data = []
-
-    # Iterate over each row in the dataset
-    for idx, entry in enumerate(LVHaystact_testset):
-        try:
-            # Extract necessary fields from the entry
-            video_id = entry.get("video_id")
-            question = entry.get("question")
-            answer = entry.get("answer", "")
-
-            options_str = entry.get("options", "")
-            gt_frame_index = entry.get("frame_indexes", []) #gt frame index for quetion
-            position = entry.get("position", [])
-            
-            # Validate required fields
-            if not video_id or not question or not options_str:
-                raise ValueError(f"Missing required fields in entry {idx+1}. Skipping entry.")
-
-            # Parse the options string into a dictionary
-            # print("type: ", type(options_str))
-            if options_str:
-                # options_dict = ast.literal_eval(options_str)
-                options_dict = options_str
-
-                # Format the options with letter prefixes (A, B, C, D...)
-                options = ""
-                for i, (key, value) in enumerate(options_dict.items()):
-                    options += f"{key}) {value}\n"
-
-                options = options.rstrip('\n')  # Remove the trailing newline
-
-            # Construct the transformed dictionary for the entry
-            transformed_entry = {
-                "video_id": video_id,
-                "video_path": os.path.join(video_root, f"{video_id}.mp4"),  # Build the full video path
-                "question": question,
-                "options": options,
-                "answer": answer,
-                "gt_frame_index": gt_frame_index,
-                "position": position,
-            }
-
-            # Add the transformed entry to the result list
-            TStar_format_data.append(transformed_entry)
-
-        except ValueError as e:
-            print(f"Skipping entry {idx+1}, reason: {str(e)}")
-        except Exception as e:
-            print(f"Error processing entry {idx+1}: {str(e)}")
-
-    return TStar_format_data
-
-def VideoMME2TStar_json(dataset_meta: str = "LVHaystack/LongVideoHaystack", 
-                          video_root: str = "Datasets/Ego4D_videos") -> List[dict]:
-    """Load and transform the dataset into the required format for T*.
-
-    The output JSON structure is like:
-    [
-        {
-            "video_path": "path/to/video1.mp4",
-            "question": "What is the color of my couch?",
-            "options": "A) Red\nB) Black\nC) Green\nD) White\n",
-            // More user-defined keys...
-        },
-        // More entries...
-    ]
-    """
-
-    dataset = load_dataset("lmms-lab/Video-MME")
-    VideoMME_testset = dataset["test"]
-    TStar_format_data = []
-
-    for idx, entry in enumerate(VideoMME_testset):
-        print(entry)
-        try:
-            # Extract necessary fields from the entry
-            video_id = entry.get("videoID")
-            question = entry.get("question")
-            answer = entry.get("answer", "")
-            options_str = entry.get("options", "")
-            gt_frame_index = entry.get("frame_indexes", []) #gt frame index for quetion            
-            duration = entry.get("duration")
-            position = entry.get("position", [])
-
-            # Validate required fields
-            if not video_id or not question or not options_str:
-                raise ValueError(f"Missing required fields in entry {idx+1}. Skipping entry.")
-
-            # Parse the options string into a dictionary
-            if options_str:
-
-                # Format the options with letter prefixes (A, B, C, D...)
-                options = ""
-                for option in options_str:
-                    options += option[0] + ') ' + option[3: ] + '\n'
-
-                options = options.rstrip('\n')  # Remove the trailing newline
-
-            # Construct the transformed dictionary for the entry
-            transformed_entry = {
-                "video_id": video_id,
-                "video_path": os.path.join(video_root, f"{video_id}.mp4"),  # Build the full video path
-                "question": question,
-                "options": options,
-                "answer": answer,
-                "gt_frame_index": gt_frame_index,
-                "duration_group": duration,
-                "position": position,
-            }
-
-            # Add the transformed entry to the result list
-            TStar_format_data.append(transformed_entry)
-
-        except ValueError as e:
-            print(f"Skipping entry {idx+1}, reason: {str(e)}")
-        except Exception as e:
-            print(f"Error processing entry {idx+1}: {str(e)}")
-
-    # with open('/data/guoweiyu/new-VL-Haystack/VL-Haystack/Datasets/Video-MME/test.json', 'w', encoding='utf-8') as file:
-    #     json.dump(TStar_format_data, file, indent=4, ensure_ascii=False)
-        
-    return TStar_format_data
-
-def LongVideoBench2TStar_json(video_root: str = "/data/guoweiyu/new-VL-Haystack/VL-Haystack/Datasets/LVBench/videos") -> List[dict]:
-    """Load and transform the dataset into the required format for T*.
-
-    The output JSON structure is like:
-    [
-        {
-            "video_path": "path/to/video1.mp4",
-            "question": "What is the color of my couch?",
-            "options": "A) Red\nB) Black\nC) Green\nD) White\n",
-            // More user-defined keys...
-        },
-        // More entries...
-    ]
-    """
-
-    with open("/data/guoweiyu/new-VL-Haystack/VL-Haystack/Datasets/LVBench/lvb_val.json", 'r', encoding='utf-8') as file:
-        lvb_dataset = json.load(file)
-
-    # List to hold the transformed data
-    TStar_format_data = []
-    num2letter = ['A', 'B', 'C', 'D', 'E']
-    # Iterate over each row in the dataset
-    for idx, entry in enumerate(lvb_dataset):
-        try:
-            # Extract necessary fields from the entry
-            video_id = entry.get("video_id")
-            video_path = entry.get("video_path")
-            question = entry.get("question")
-            answer = entry.get("correct_choice", "")
-            answer = num2letter[answer]
-            question_category = entry.get("question_category")
-            duration_group = entry.get("duration_group")
-            position = entry.get("position", [])
-            
-            # filter out subtitle questions based on question category
-            if 'T' in question_category:
-                continue
-
-            options_list = entry.get("candidates", "")
-            
-            # gt_frame_index = entry.get("frame_indexes", []) #gt frame index for quetion
-
-            # Validate required fields
-            if not video_id or not question or not options_list:
-                raise ValueError(f"Missing required fields in entry {idx+1}. Skipping entry.")
-
-            # Parse the options string into a dictionary
-            if options_list:
-                options = ""
-
-                # Format the options with letter prefixes (A, B, C, D...)
-                for idx in range(len(options_list)):
-                    options += num2letter[idx] + ') ' + options_list[idx] + '\n'
-                
-                options = options.rstrip('\n')  # Remove the trailing newline
-
-            
-            # Construct the transformed dictionary for the entry
-            transformed_entry = {
-                "video_id": video_id,
-                "video_path": os.path.join(video_root, video_path),  # Build the full video path
-                "question": question,
-                "options": options,
-                "answer": answer,
-                "duration_group": duration_group,
-                "gt_frame_index": position,
-            }
-
-            # Add the transformed entry to the result list
-            TStar_format_data.append(transformed_entry)
-
-        except ValueError as e:
-            print(f"Skipping entry {idx+1}, reason: {str(e)}")
-        except Exception as e:
-            print(f"Error processing entry {idx+1}: {str(e)}")
-
-    return TStar_format_data
 
 def parse_arguments() -> argparse.Namespace:
     """
@@ -404,9 +163,6 @@ def main():
     for idx, data_item in enumerate(dataset):
         task_type = data_item.get('task_type', ' ')
         
-        if data_item['video_id'] != "Ip9DbdOtqF4":
-            continue
-
         if task_type in FILTER_TASK_TYPES:
             continue
 

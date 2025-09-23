@@ -4,8 +4,7 @@ from typing import List
 from datasets import load_dataset
 
 
-def LVHaystack2TStar_json(dataset_meta: str = "LVHaystack/LongVideoHaystack", 
-                          video_root: str = "Datasets/Ego4D_videos") -> List[dict]:
+def LVHaystack2TStar_json(video_root: str) -> List[dict]:
     """Load and transform the dataset into the required format for T*.
 
     The output JSON structure is like:
@@ -80,8 +79,7 @@ def LVHaystack2TStar_json(dataset_meta: str = "LVHaystack/LongVideoHaystack",
 
     return TStar_format_data
 
-def VideoMME2TStar_json(dataset_meta: str = "LVHaystack/LongVideoHaystack", 
-                          video_root: str = "Datasets/Ego4D_videos") -> List[dict]:
+def VideoMME2TStar_json(video_root: str) -> List[dict]:
     """Load and transform the dataset into the required format for T*.
 
     The output JSON structure is like:
@@ -151,7 +149,7 @@ def VideoMME2TStar_json(dataset_meta: str = "LVHaystack/LongVideoHaystack",
         
     return TStar_format_data
 
-def LongVideoBench2TStar_json(video_root: str = "/data/guoweiyu/new-VL-Haystack/VL-Haystack/Datasets/LVBench/videos") -> List[dict]:
+def LongVideoBench2TStar_json(video_root: str) -> List[dict]:
     """Load and transform the dataset into the required format for T*.
 
     The output JSON structure is like:
@@ -169,7 +167,6 @@ def LongVideoBench2TStar_json(video_root: str = "/data/guoweiyu/new-VL-Haystack/
     with open("/data/guoweiyu/new-VL-Haystack/VL-Haystack/Datasets/LVBench/lvb_val.json", 'r', encoding='utf-8') as file:
         lvb_dataset = json.load(file)
     
-        
 
     # List to hold the transformed data
     TStar_format_data = []

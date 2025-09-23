@@ -118,8 +118,7 @@ def main():
     # Initialize Grounder
     grounder = TStarUniversalGrounder(
         backend=args.backend,
-        gpt4_model_name="gpt-4o",
-        model_path="/data/guoweiyu/new-VL-Haystack/VL-Haystack/LLaVA-NeXT/llava-onevision-qwen2-7b-ov"
+        gpt4_model_name="gpt-4o"
     )
 
     # Initialize YOLO interface
@@ -136,10 +135,9 @@ def main():
     for idx, data_item in enumerate(dataset):
         
         print(f"Processing {idx+1}/{len(dataset)}: {data_item['video_id']}")
-        # 过滤与subtitle相关的问题
+        # filter subtitle relevant questions
         if "subtitle" in data_item['question']:
             continue
-
         
         try:
             result = grounding_objects_onVideo(args, data_item=data_item, grounder=grounder, yolo_scorer=yolo_interface)

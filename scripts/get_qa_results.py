@@ -235,7 +235,6 @@ if __name__ == "__main__":
 
     tstar_grounder = TStarUniversalGrounder(
         backend=args.backend,
-        model_path="zdvz",
         num_frames=8
     )
 

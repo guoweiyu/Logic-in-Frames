@@ -131,8 +131,7 @@ def main():
     # Initialize Grounder
     grounder = TStarUniversalGrounder(
         backend=args.backend,
-        gpt4_model_name="gpt-4o",
-        model_path="/data/guoweiyu/new-VL-Haystack/VL-Haystack/LLaVA-NeXT/llava-onevision-qwen2-7b-ov"
+        gpt4_model_name="gpt-4o"
     )
 
     # Initialize YOLO interface

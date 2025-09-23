@@ -1,8 +1,5 @@
-import torch
 import os
-from tqdm import tqdm
-from typing import Dict, Optional, Sequence, List
-import transformers
+from typing import Dict, Optional, List
 import re
 import sys
 sys.path.append("/data/guoweiyu/new-VL-Haystack/VL-Haystack/LLaVA-NeXT")
@@ -10,9 +7,6 @@ sys.path.append("/data/guoweiyu/new-VL-Haystack/VL-Haystack/TStar")
 import openai
 from typing import List, Dict
 from PIL import Image
-import base64
-import copy
-import io
 import numpy as np
 import cv2
 from utilites import *
@@ -43,40 +37,14 @@ def load_video(self, video_path, max_frames_num,fps=1,force_sample=False):
     # spare_frames形状为(采样帧数,336,336,3)，后面为分辨率，frame_time为帧时间字符串
     return spare_frames,frame_time,video_time # 返回采样帧，帧时间戳以及视频总时长
 
-class InternvlInterface:
-    def __init__(self, model_path: str):
+class LocalVLMInterface:
+    def __init__(self, model_name: str="default", base_url: str="yourl api url"):
         """
-        初始化Llava接口。
+        deploy VLM locally
+        access via RESTful API        
         """
-        self.model_path = model_path
-        # self.client = openai.Client(api_key="EMPTY", base_url="http://10.120.20.197:27790/v1")
-        self.client = openai.Client(api_key="None", base_url="http://10.120.16.110:30000/v1")
-        # # 验证模型路径
-        # if not os.path.exists(model_path):
-        #     raise ValueError(f"模型路径不存在: {model_path}")
-        
-        # try:
-        #     # 清理CUDA缓存
-        #     torch.cuda.empty_cache()
-        #     self.device = "cuda:0"
-        #     device_map = {"": self.device}
-        #     self.tokenizer, self.model, self.image_processor, self.max_length = load_pretrained_model(
-        #         "/data/guoweiyu/new-VL-Haystack/VL-Haystack/LLaVA-NeXT/llava-onevision-qwen2-7b-ov",
-        #         None,
-        #         "llava_qwen",
-        #         device_map = device_map,
-        #         ignore_mismatched_sizes=True
-        #     )
-        #     # 设置对话模板
-        #     self.conv_mode = "llava_v1"
-        #     self.conv = conv_templates[self.conv_mode].copy()
-
-        #     print(f"[LlavaInterface] 成功加载本地模型")
-        #     print(f"- 模型路径: {model_path}")
-            
-        # except Exception as e:
-        #     print(f"Error details: {str(e)}")
-        #     raise RuntimeError(f"加载模型失败: {str(e)}")
+        self.model_name = model_name
+        self.client = openai.Client(api_key="None", base_url=base_url)
 
     def inference_text_only(
         self, 
@@ -86,174 +54,7 @@ class InternvlInterface:
         max_tokens: int = 1000
     ) -> str:
         """
-        仅文本输入的推理接口。
-        """
-        try:
-            print("llava_inference_text_only")
-            stream_request = self.client.chat.completions.create(
-                model="default",
-                messages=[
-                    {
-                        "role": "user",
-                        "content": [
-                            {
-                                "type": "text",
-                                "text": query,
-                            },
-                        ],
-                    },
-                ],
-                temperature=temperature,
-                max_tokens=max_tokens,
-                stream=True,
-            )
-            stream_response = ""
-
-            for chunk in stream_request:
-                if chunk.choices[0].delta.content is not None:
-                    content = chunk.choices[0].delta.content
-                    stream_response += content
-
-            print(stream_response)
-            print("-" * 30)
-                
-        except Exception as e:
-            return f"Error: {str(e)}"
-
-    def inference_with_frames_all_in_one(
-        self,
-        query: str,
-        frames: List[Image.Image],
-        system_message: str = "You are a helpful assistant.",
-        temperature: float = 0.2,
-        max_tokens: int = 1000
-    ) -> str:
-        try:
-            #把frame中的每一帧resize为224*224
-            inputs = [{"type": "text", "text": query}]
-            print("len(frames)", len(frames))
-            for i, frame in enumerate(frames):
-                frame_base64 = encode_image_to_base64(frame)
-                visual_context = {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": f"data:image/jpeg;base64,{frame_base64}",
-                            },
-                        "modalities": "multi-images",
-                    }
-                # Adding visual context (images) to messages if supported by the model
-                inputs.append(visual_context)
-                
-            response = self.client.chat.completions.create(
-                # model="InternVL2_5-78B",
-                model="OpenGVLab/InternVL3-8B",
-                messages=[
-                    {
-                        "role": "user",
-                        "content": inputs,
-                    },
-                ],
-                temperature=0.2,
-            )
-            print("\nResponse:")
-            print(response.choices[0].message.content)
-            return response.choices[0].message.content
-
-        # try:               
-        #     stream_request = self.client.chat.completions.create(
-        #         model="default",
-        #         messages=[
-        #             {
-        #                 "role": "user",
-        #                 "content": [
-        #                     {
-        #                         "type": "image_url",
-        #                         "image_url": {
-        #                             "url": f"data:image/jpeg;base64,{base64_image}"
-        #                         },
-        #                     },
-        #                     {
-        #                         "type": "text",
-        #                         "text": "请描述这张图片内容",
-        #                     },
-        #                 ],
-        #             },
-        #         ],
-        #         temperature=0.7,
-        #         max_tokens=1024,
-        #         stream=True,
-        #     )
-            
-        #     for chunk in stream_request:
-        #         if chunk.choices[0].delta.content:
-        #             print(chunk.choices[0].delta.content, end="", flush=True)
-        #     print("\n" + "-"*30)            
-        except Exception as e:
-            print(f"Error in inference_with_frames_all_in_one: {str(e)}")
-            return f"Error: {str(e)}"
-
-    def inference_qa(
-        self,
-        question: str,
-        options: str,
-        frames: List[Image.Image] = None,
-        system_message: str = "You are a helpful assistant.",
-        temperature: float = 0.1,
-        max_tokens: int = 500
-    ) -> str:
-        try:
-        # 构建查询
-            query = f"Question: {question}\nOptions: {options}\nAnswer with the letter corresponding to the best choice."
-
-            inputs = [{"type": "text", "text": query}]
-            print("len(frames)", len(frames))
-            for i, frame in enumerate(frames):
-                frame_base64 = encode_image_to_base64(frame)
-                visual_context = {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": f"data:image/jpeg;base64,{frame_base64}",
-                            }
-                    }
-                # Adding visual context (images) to messages if supported by the model
-                inputs.append(visual_context)
-                
-            response = self.client.chat.completions.create(
-                model="default",
-                messages=[
-                        {
-                            "role": "user",
-                            "content": inputs,
-                        },
-                ],
-                temperature=temperature,
-            )
-            print("\nResponse:")
-            print(response)
-            print(response.choices[0].message.content)
-            return response.choices[0].message.content
-            
-        except Exception as e:
-            print(f"Error in inference_qa: {str(e)}")
-            return f"Error: {str(e)}"
-
-class Internvl1Interface:
-    def __init__(self, model_path: str):
-        """
-        Initialize the interface
-        """
-        self.model_path = model_path
-        self.client = openai.Client(api_key="None", base_url="http://10.120.16.110:30000/v1")
-
-    def inference_text_only(
-        self, 
-        query: str, 
-        system_message: str = "You are a helpful assistant.",
-        temperature: float = 0.7,
-        max_tokens: int = 1000
-    ) -> str:
-        """
-        Handle text input        
+        inference only with text input
         """
         try:
             stream_request = self.client.chat.completions.create(
@@ -297,172 +98,6 @@ class Internvl1Interface:
         try:
             # resize frame to (224, 224)
             inputs = [{"type": "text", "text": query}]
-            for i, frame in enumerate(frames):
-                frame_base64 = encode_image_to_base64(frame)
-                visual_context = {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": f"data:image/jpeg;base64,{frame_base64}",
-                            },
-                        "modalities": "multi-images",
-                    }
-                # Adding visual context (images) to messages if supported by the model
-                inputs.append(visual_context)
-                
-            response = self.client.chat.completions.create(
-                model="OpenGVLab/InternVL3-8B",
-                messages=[
-                    {
-                        "role": "user",
-                        "content": inputs,
-                    },
-                ],
-                temperature=0.2,
-                max_tokens=4096
-            )
-            print("\nResponse:")
-            print(response.choices[0].message.content)
-            return response.choices[0].message.content
-        # try:               
-        #     stream_request = self.client.chat.completions.create(
-        #         model="default",
-        #         messages=[
-        #             {
-        #                 "role": "user",
-        #                 "content": [
-        #                     {
-        #                         "type": "image_url",
-        #                         "image_url": {
-        #                             "url": f"data:image/jpeg;base64,{base64_image}"
-        #                         },
-        #                     },
-        #                     {
-        #                         "type": "text",
-        #                         "text": "请描述这张图片内容",
-        #                     },
-        #                 ],
-        #             },
-        #         ],
-        #         temperature=0.7,
-        #         max_tokens=1024,
-        #         stream=True,
-        #     )
-            
-        #     for chunk in stream_request:
-        #         if chunk.choices[0].delta.content:
-        #             print(chunk.choices[0].delta.content, end="", flush=True)
-        #     print("\n" + "-"*30)            
-        except Exception as e:
-            print(f"Error in inference_with_frames_all_in_one: {str(e)}")
-            return f"Error: {str(e)}"
-
-    def inference_qa(
-        self,
-        question: str,
-        options: str,
-        frames: List[Image.Image] = None,
-        system_message: str = "You are a helpful assistant.",
-        temperature: float = 0.1,
-        max_tokens: int = 500
-    ) -> str:
-        try:
-        # 构建查询
-            query = f"Question: {question}\nOptions: {options}\nAnswer with the letter corresponding to the best choice."
-
-            inputs = [{"type": "text", "text": query}]
-            print("len(frames)", len(frames))
-            for i, frame in enumerate(frames):
-                frame_base64 = encode_image_to_base64(frame)
-                visual_context = {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": f"data:image/jpeg;base64,{frame_base64}",
-                            }
-                    }
-                # Adding visual context (images) to messages if supported by the model
-                inputs.append(visual_context)
-                
-            response = self.client.chat.completions.create(
-                # model="InternVL2_5-78B",
-                model="OpenGVLab/InternVL3-8B",
-                messages=[
-                        {
-                            "role": "user",
-                            "content": inputs,
-                        },
-                ],
-                temperature=temperature,
-            )
-            print("\nResponse:")
-            print(response)
-            print(response.choices[0].message.content)
-            return response.choices[0].message.content
-            
-        except Exception as e:
-            print(f"Error in inference_qa: {str(e)}")
-            return f"Error: {str(e)}"
-
-class QwenVLInterface:
-    def __init__(self, model_path: str):
-        """
-        初始化Llava接口。
-        """
-        self.model_path = model_path
-        self.client = openai.Client(api_key="EMPTY", base_url="http://10.120.16.110:30000/v1")
-
-    def inference_text_only(
-        self, 
-        query: str, 
-        system_message: str = "You are a helpful assistant.",
-        temperature: float = 0.7,
-        max_tokens: int = 1000
-    ) -> str:
-        """
-        仅文本输入的推理接口。
-        """
-        try:
-            print("llava_inference_text_only")
-            stream_request = self.client.chat.completions.create(
-                model="default",
-                messages=[
-                    {
-                        "role": "user",
-                        "content": [
-                            {
-                                "type": "text",
-                                "text": query,
-                            },
-                        ],
-                    },
-                ],
-                temperature=temperature,
-                max_tokens=max_tokens,
-                stream=True,
-            )
-            stream_response = ""
-
-            for chunk in stream_request:
-                if chunk.choices[0].delta.content is not None:
-                    content = chunk.choices[0].delta.content
-                    stream_response += content
-
-            print(stream_response)
-            print("-" * 30)
-                
-        except Exception as e:
-            return f"Error: {str(e)}"
-
-    def inference_with_frames_all_in_one(
-        self,
-        query: str,
-        frames: List[Image.Image],
-        system_message: str = "You are a helpful assistant.",
-        temperature: float = 0.2,
-        max_tokens: int = 1000
-    ) -> str:
-        try:
-            #把frame中的每一帧resize为224*224
-            inputs = [{"type": "text", "text": query}]
             print("len(frames)", len(frames))
             for i, frame in enumerate(frames):
                 frame_base64 = encode_image_to_base64(frame)
@@ -478,7 +113,7 @@ class QwenVLInterface:
                 
             response = self.client.chat.completions.create(
                 # model="InternVL2_5-78B",
-                model="Qwen/Qwen2.5-VL-7B-Instruct",
+                model=self.model_name,
                 messages=[
                     {
                         "role": "user",
@@ -486,149 +121,11 @@ class QwenVLInterface:
                     },
                 ],
                 temperature=0.2,
-                max_tokens=4096
             )
             print("\nResponse:")
             print(response.choices[0].message.content)
             return response.choices[0].message.content
-     
-        except Exception as e:
-            print(f"Error in inference_with_frames_all_in_one: {str(e)}")
-            return f"Error: {str(e)}"
-
-    def inference_qa(
-        self,
-        question: str,
-        options: str,
-        frames: List[Image.Image] = None,
-        system_message: str = "You are a helpful assistant.",
-        temperature: float = 0.1,
-        max_tokens: int = 500
-    ) -> str:
-        try:
-        # 构建查询
-            query = f"Question: {question}\nOptions: {options}\nAnswer with the letter corresponding to the best choice."
-
-            inputs = [{"type": "text", "text": query}]
-            print("len(frames)", len(frames))
-            for i, frame in enumerate(frames):
-                frame_base64 = encode_image_to_base64(frame)
-                visual_context = {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": f"data:image/jpeg;base64,{frame_base64}",
-                            }
-                    }
-                # Adding visual context (images) to messages if supported by the model
-                inputs.append(visual_context)
-                
-            response = self.client.chat.completions.create(
-                # model="InternVL2_5-78B",
-                model="Qwen/Qwen2.5-VL-7B-Instruct",
-                messages=[
-                        {
-                            "role": "user",
-                            "content": inputs,
-                        },
-                ],
-                temperature=temperature,
-            )
-            return response.choices[0].message.content
-            
-        except Exception as e:
-            print(f"Error in inference_qa: {str(e)}")
-            return f"Error: {str(e)}"
-
-
-class LlavaInterface:
-    def __init__(self, model_path: str):
-        """
-        初始化Llava接口。
-        """
-        self.model_path = model_path
-        self.client = openai.Client(api_key="EMPTY", base_url="http://10.120.16.110:30001/v1")
-
-    def inference_text_only(
-        self, 
-        query: str, 
-        system_message: str = "You are a helpful assistant.",
-        temperature: float = 0.7,
-        max_tokens: int = 1000
-    ) -> str:
-        """
-        仅文本输入的推理接口。
-        """
-        try:
-            print("llava_inference_text_only")
-            stream_request = self.client.chat.completions.create(
-                model="default",
-                messages=[
-                    {
-                        "role": "user",
-                        "content": [
-                            {
-                                "type": "text",
-                                "text": query,
-                            },
-                        ],
-                    },
-                ],
-                temperature=temperature,
-                max_tokens=max_tokens,
-                stream=True,
-            )
-            stream_response = ""
-
-            for chunk in stream_request:
-                if chunk.choices[0].delta.content is not None:
-                    content = chunk.choices[0].delta.content
-                    stream_response += content
-
-            print(stream_response)
-            print("-" * 30)
-                
-        except Exception as e:
-            return f"Error: {str(e)}"
-
-    def inference_with_frames_all_in_one(
-        self,
-        query: str,
-        frames: List[Image.Image],
-        system_message: str = "You are a helpful assistant.",
-        temperature: float = 0.2,
-        max_tokens: int = 1000
-    ) -> str:
-        try:
-            #把frame中的每一帧resize为224*224
-            inputs = [{"type": "text", "text": query}]
-            print("len(frames)", len(frames))
-            for i, frame in enumerate(frames):
-                frame_base64 = encode_image_to_base64(frame)
-                visual_context = {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": f"data:image/jpeg;base64,{frame_base64}",
-                            },
-                        "modalities": "multi-images",
-                    }
-                # Adding visual context (images) to messages if supported by the model
-                inputs.append(visual_context)
-                
-            response = self.client.chat.completions.create(
-                model="default",
-                messages=[
-                    {
-                        "role": "user",
-                        "content": inputs,
-                    },
-                ],
-                temperature=0.2,
-                max_tokens=1024,
-            )
-            print("\nResponse:")
-            print(response.choices[0].message.content)
-            return response.choices[0].message.content
-
+             
         except Exception as e:
             print(f"Error in inference_with_frames_all_in_one: {str(e)}")
             return f"Error: {str(e)}"
@@ -668,7 +165,6 @@ class LlavaInterface:
                         },
                 ],
                 temperature=temperature,
-                max_tokens=1024,
             )
             print("\nResponse:")
             print(response)
@@ -847,44 +343,34 @@ class GPT4Interface:
 
 class TStarUniversalGrounder:
     """
-    结合了原先 TStarGrounder 与 TStarGPTGrounder 的功能，
-    可以通过 backend 参数切换到底层使用的是 LlavaInterface 还是 GPT4Interface。
+        A universal interface for different VLM backends to perform video question grounding.
     """
     def __init__(
         self,
         backend: str = "llava",
-        model_path: Optional[str] = None,
+        model_name: Optional[str] = None,
+        base_url: Optional[str] = None,
         gpt4_model_name: str = "gpt-4o",
         gpt4_api_key: Optional[str] = None,
         num_frames: Optional[int] = 8,
     ):
         """
-        backend: "llava" 或 "gpt4"
-        model_path
-        gpt4_model_name, gpt4_api_key: GPT4 的模型名称及 API Key
+        backend: local vlm or gpt4
+        model_name & base_url: local vlm
+        gpt4_model_name, gpt4_api_key: GPT4 model name & API Key
         """
         self.backend = backend.lower()
         self.num_frames = num_frames
-        if self.backend == "llava":
-            # 初始化 LlavaInterface
-            if not model_path:
-                raise ValueError("Please provide model_path for LlavaInterface")
-            self.VLM_model_interfance = LlavaInterface(model_path=model_path)
+        if self.backend == "llava" or self.backend == "internvl" or self.backend == "qwenvl":
+            if not model_name:
+                raise ValueError("Please provide certain model_name")
+            self.VLM_model_interfance = LocalVLMInterface(model_name=model_name, base_url=base_url)
+
         elif self.backend == "gpt4":
-            # 初始化 GPT4Interface
             self.VLM_model_interfance = GPT4Interface(model=gpt4_model_name, api_key='11ce63c4e72f4187ab6c606405f32c12c2f11b76e55a4ce6ab3013d7e7815efb')
 
-        elif self.backend == "internvl":
-            self.VLM_model_interfance = InternvlInterface(model_path=model_path)
-        
-        elif self.backend == "internvl1":
-            self.VLM_model_interfance = Internvl1Interface(model_path=model_path)
-        
-        elif self.backend == "qwenvl":
-            self.VLM_model_interfance = QwenVLInterface(model_path=model_path)
-
         else:
-            raise ValueError("backend must be either 'llava' or 'gpt4'.")
+            raise ValueError("backend must be either 'llava', 'internvl', 'qwenvl' or 'gpt4'.")
 
     def inference_query_grounding(
         self,
@@ -896,7 +382,7 @@ class TStarUniversalGrounder:
         max_tokens: int = 512
     ) -> Dict[str, List[str]]:
         """
-        识别可作为答案依据的 target_objects 和可能辅助判断的 cue_objects。
+        identify target_objects and cue_objects that help answer the question.
         """
         frames = load_video_frames(video_path=video_path, num_frames=self.num_frames)
         # 构建 prompt
@@ -917,14 +403,8 @@ class TStarUniversalGrounder:
         else:
             raise ValueError("backend must be either 'llava' or 'gpt4'.")
         
-#        if upload_video:
         
         print("???", len(frames))
-        # else:
-        #     system_prompt = (
-        #         "Here is a question:\n"
-        #         +f"Question: {question}\n"
-        #     )
             
         if options:
             system_prompt += f"Options: {options}\n"
@@ -941,7 +421,6 @@ class TStarUniversalGrounder:
             "Cue Objects:object1,object2,object3"
         )
 
-        # 统一走 self.interface.inference # need more abstract function
         if upload_video:
             response = self.VLM_model_interfance.inference_with_frames_all_in_one(
                 query=system_prompt,
@@ -955,7 +434,8 @@ class TStarUniversalGrounder:
                 temperature=temperature,
                 max_tokens=max_tokens
             )
-        # 根据预期格式解析响应
+
+        # parse response based on expected format
         lines = response.split("\n")
         if len(lines) < 2:
             raise ValueError("Unexpected response format. Could not extract objects.")
@@ -974,11 +454,9 @@ class TStarUniversalGrounder:
         max_tokens: int = 512
     ) -> Dict[str, List[str]]:
         """
-        识别可作为答案依据的 target_objects 和可能辅助判断的 cue_objects。
+        identify target_objects and cue_objects that help answer the question.
         """
 
-        # TODO: num_frames should be consistent with uniform strategy to ensure fair comparison
-        # 构建 prompt
         if upload_video:
             frames = load_video_frames(video_path=video_path, num_frames=self.num_frames)
         
@@ -1007,23 +485,6 @@ class TStarUniversalGrounder:
 
         if options:
             system_prompt += f"Options: {options}\n"
-            
-        # system_prompt += (
-        #     "\nPlease analyze the video:\n"
-        #     "1. Question Understanding:\n"
-        #     "Analyze the main event, action, or object the question focuses on.\n"
-        #     "Identify explicit and implicit requirements (e.g., temporal, spatial relationships).\n"
-        #     "2. Key Object Identification:\n"
-        #     "List core objects directly determining the answer. Prioritize specific and actionable items.\n"
-        #     "Consider object states (e.g., broken vase vs vase) if critical to the question.\n"
-        
-        #     "Please list:"
-        #     "Key objects that are directly relevant to answering the question\n"
-        #     "Cue objects that might help locate or identify the key objects\n\n"
-        #     "Format your response EXACTLY like this:\n"
-        #     "Key Objects: object1, object2, object3\n"
-        #     "Cue Objects: object1, object2, object3"
-        # )
 
         system_prompt += ( # Rebuttal Change
                         #   Extract 3-5 core objects detectable by computer vision
@@ -1078,7 +539,6 @@ class TStarUniversalGrounder:
             )
         
         if upload_video:
-            # 统一走 self.interface.inference # need more abstract function
             response = self.VLM_model_interfance.inference_with_frames_all_in_one(
                 query=system_prompt,
                 frames=frames,
@@ -1093,10 +553,7 @@ class TStarUniversalGrounder:
             )
         print("response: ", response)
 
-        lines = response
-        # 更鲁棒的response格式解析
-
-        
+        lines = response        
         lines = re.sub(r'\n+', '\\n', lines)
         lines = re.sub(r'\n$', '', lines)
         lines = re.sub(r'^\n', '', lines)
@@ -1107,20 +564,16 @@ class TStarUniversalGrounder:
         if end_pos == -1:
             end_pos = len(lines)
         lines = lines[start_pos:end_pos]
-        # 根据预期格式解析响应
+
         lines = lines.split("\n")
         if len(lines) < 2:
-            # print(response)
             raise ValueError(f"Unexpected response format from inference_query_grounding() --> {response}.")
 
         target_objects = self.parse_objects(lines[0])
         cue_objects = self.parse_objects(lines[1])
         relations = self.parse_relations(lines[2])
         print(relations)
-        
-        # target_objects = [self.check_objects_str(obj) for obj in lines[0].split(",") if obj.strip()]
-        # cue_objects = [self.check_objects_str(obj) for obj in lines[1].split(",") if obj.strip()]
-        
+                
         return target_objects, cue_objects, relations
 
     def parse_objects(self, objects: str):
@@ -1128,7 +581,7 @@ class TStarUniversalGrounder:
         object_list[0] = object_list[0].replace("Key Objects:", "")
         object_list[0] = object_list[0].replace("Cue Objects:", "")
         for idx in range(len(object_list)):
-            object_list[idx] = object_list[idx].strip()   # 去除头尾空格
+            object_list[idx] = object_list[idx].strip()   # strip head and tail spaces
 
         return object_list
     
@@ -1136,7 +589,7 @@ class TStarUniversalGrounder:
         rel_list = rels.split(",")
         rel_list[0] = rel_list[0].replace("Rel:", "")
         for idx in range(len(rel_list)):
-            rel_list[idx] = rel_list[idx].strip()   # 去除头尾空格
+            rel_list[idx] = rel_list[idx].strip()
 
         return_list = []
         for relation in rel_list:
@@ -1159,7 +612,8 @@ class TStarUniversalGrounder:
         frame_timestamps: List = [1, 2, 3, 4, 5, 6, 7, 8]
     ) -> str:
         """
-        多选推理，返回最可能的选项（如 A、B、C、D）。
+        answer multiple choice questions
+        return the most possible option 'A', 'B', 'C' or 'D'
         """
         if self.backend == "gpt4":
             system_prompt = (
@@ -1167,38 +621,12 @@ class TStarUniversalGrounder:
                 + "\n".join(["<image>"] * len(frames))  
                 + f"\nQuestion: {question}\n"
                 + f"Options: {options}\n"
-                #+ "Please first describe the images you received and report how many images you have received.\n"
                 + "Answer with the option’s letter from the given choices directly.\n"
                 + "Your response format should be strictly an upper case letter A,B,C,D or E.\n"
             )
             print("system_prompt:\n",system_prompt)
-            # system_prompt = (
-            #     "Please describe the uploaded images.\n"
-            #     + "\n".join(["<image>"] * len(frames))
-            # )
-        elif self.backend == "llava" or self.backend == "internvl" or self.backend == "qwenvl" or self.backend == "internvl1":
-            system_prompt = (
-                #"Here is a question, video and options."
-                "Select the best answer to the following multiple-choice question based on the video.\n"
-                # + "\n(The provided images are arranged in chronological order from the start to the end of the video.)\n" # add for prompt
-                + "\n".join(["<image>"] * len(frames))  
-                + f"\nQuestion: {question}\n"
-                + f"Options: {options}\n"
-                + "Answer with the option’s letter from the given choices directly.\n"
-                + "Your response format should be strictly an upper case letter A,B,C,D or E.\n"
-                #+ "Please describe the images you received and report how many images you have received."
-            )
-            print("system_prompt:\n",system_prompt)
-        elif self.backend == "llava_test":
-            video_path = video_path
-            max_frames_num = "64"
-            video,frame_time,video_time = load_video(video_path, max_frames_num, 1, force_sample=True)
-            video = image_processor.preprocess(video, return_tensors="pt")["pixel_values"].cuda().bfloat16()
-            video = [video]
-            conv_template = "qwen_1_5" 
-            
-            time_instruciton = f"The video lasts for {video_time:.2f} seconds, and 8 frames are uniformly sampled from it. These frames are located at {frame_timestamps}.Please answer the following questions related to this video."
 
+        elif self.backend == "llava" or self.backend == "internvl" or self.backend == "qwenvl":
             system_prompt = (
                 "Select the best answer to the following multiple-choice question based on the video.\n"
                 + "\n".join(["<image>"] * len(frames))  
@@ -1207,6 +635,8 @@ class TStarUniversalGrounder:
                 + "Answer with the option’s letter from the given choices directly.\n"
                 + "Your response format should be strictly an upper case letter A,B,C,D or E.\n"
             )
+            print("system_prompt:\n",system_prompt)
+
         response = self.VLM_model_interfance.inference_with_frames_all_in_one(
             query=system_prompt,
             frames=frames,
@@ -1218,11 +648,12 @@ class TStarUniversalGrounder:
     
 if __name__ == "__main__":
     """
-    测试示例。
+    test example
     """
     
-    llava_interface = InternvlInterface(
-        model_path="/data/guoweiyu/new-VL-Haystack/VL-Haystack/LLaVA-NeXT/llava-onevision-qwen2-7b-ov"
+    llava_interface = LocalVLMInterface(
+        model_name="default",
+        base_url="your url service"
     )
     llava_interface.inference_text_only("What is the color of the sky?")
 

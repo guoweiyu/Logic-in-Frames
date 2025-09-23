@@ -36,11 +36,8 @@ def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="TStarSearcher: Video Frame Search and QA Tool")
 
     # Data meta processing arguments
-    parser.add_argument('--dataset', type=str, default="VideoMME", help='The video dataset used for processing.')
-    parser.add_argument('--data_path', type=str, default="obj_VideoMME_gpt4.json", help='The data path.')
-    parser.add_argument('--dataset_meta', type=str, default="LVHaystack/LongVideoHaystack", help='Path to the input JSON file for batch processing.')
-    parser.add_argument('--video_root', type=str, default='/data/guoweiyu/new-VL-Haystack/VL-Haystack/Datasets/ego4d/ego4d_data/v1/256p', help='Root directory where the input video files are stored.')
-    parser.add_argument('--results_dir', type=str, default='./results/', help='Path to save the batch processing results.')
+    parser.add_argument('--obj_path', type=str, default="./runs/obj/obj_VideoMME.json", help='The input data path of grounding objects.')
+    parser.add_argument('--kfs_path', type=str, default='./runs/kfs/kfs_VideoMME.json', help='Path to save the key frame searching results.')
     
     # Common arguments
     parser.add_argument('--config_path', type=str, default="./YOLO-World/configs/pretrain/yolo_world_v2_xl_vlpan_bn_2e-3_100e_4x8gpus_obj365v1_goldg_train_lvis_minival.py", help='Path to the YOLO configuration file.')
@@ -132,9 +129,6 @@ def main():
     """
     args = parse_arguments()    
 
-    # Create output directory if it doesn't exist
-    os.makedirs(args.output_dir, exist_ok=True)
-
     # Initialize Grounder
     grounder = TStarUniversalGrounder(
         backend=args.backend,
@@ -149,15 +143,9 @@ def main():
         device=args.device
     )
 
-    
-    input_json = '/data/guoweiyu/new-VL-Haystack/VL-Haystack/results/rebuttal/2025-07-29-final_qa_results/2025-07-31-01-17-21qa_8frames_llava_score_LongVideoBench_adaptive.json'
-
     results = []
-    
-    output_json = '/data/guoweiyu/new-VL-Haystack/VL-Haystack/results/kfs_32frames_LongVideoBench_for_test.json'
 
-    dataset = []
-    with open(input_json, 'r', encoding='utf-8') as f_read:
+    with open(args.obj_path, 'r', encoding='utf-8') as f_read:
         dataset = json.load(f_read)
             
     for idx, data_item in enumerate(dataset):
@@ -184,10 +172,10 @@ def main():
         results.append(data_item)
         if (idx + 1) % args.save_batch == 0 or (idx + 1) == len(dataset):
             # Save batch results to output_json
-            with open(output_json, 'w', encoding='utf-8') as f_out:
+            with open(args.kfs_path, 'w', encoding='utf-8') as f_out:
                 json.dump(results, f_out, indent=4, ensure_ascii=False)
     
-    print(f"Batch processing completed. Results saved to {output_json}")
+    print(f"Batch processing completed. Results saved to {args.kfs_path}")
 
 if __name__ == "__main__":
     main()

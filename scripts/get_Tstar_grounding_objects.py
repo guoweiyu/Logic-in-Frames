@@ -116,9 +116,6 @@ def main():
 
     print(len(dataset), "%"*30)
 
-    # Create output directory if it doesn't exist
-    os.makedirs(args.output_dir, exist_ok=True)
-
     # Initialize Grounder
     grounder = TStarUniversalGrounder(
         backend=args.backend,

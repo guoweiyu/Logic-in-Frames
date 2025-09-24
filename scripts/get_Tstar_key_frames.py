@@ -22,7 +22,6 @@ FILTER_TASK_TYPES = ['OCR Problems', 'Counting Problem', 'Temporal Perception', 
 
 nowTime = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
 
-v_p = "/data/guoweiyu/new-VL-Haystack/VL-Haystack/Datasets/LVBench/videos/BtaVRhoLpC0.mp4"
 np.random.seed(2025)
 
 def parse_arguments() -> argparse.Namespace:

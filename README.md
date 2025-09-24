@@ -1,4 +1,5 @@
-# TStar: A Unified KeyFrame Searching Framework for Video Question Answering
+# VSLS: Visual Semantic-Logical Keyframe Search Framework
+
 
 **TStar** is a comprehensive framework designed to integrate **KeyFrame Searching** into Vision-Language Models (VLMs) to enhance Video Question Answering (VQA). By leveraging efficient keyframe searching, TStar dynamically identifies relevant frames in videos, enabling state-of-the-art VLMs like **LLaVA** to achieve improved performance in understanding and reasoning over video data.
 
@@ -30,94 +31,83 @@ VL-Haystack/
 │   ├── interface_yolo.py      # YOLO-based object detection interface
 │   ├── interface_searcher.py  # Searching logic for T* heuristic processing
 │   ├── TStarFramewor.py  # Demonstration class for integrating T* searching with QA
-├── HaystackBench              # Script for inference on LV-Haystack dataset
-│   ├── val_LV_Haystack.py  
+├── scripts              # Script for running VSLS pipeline
+│   ├── get_Tstar_grounding_objects.py  # Grounding objects and relations for given Video QA dataset 
+│   ├── ger_Tstar_key_frames.py # Performing keyframe search based on object grounding results
+│   ├── ger_qa_results.py # Feeding keyframes into VLM to get qa results
+
+
+
 ├── README.md                  # Project readme
 
 ```
 
-## Run VideoSearching Demo
+## Run VSLS Pipeline:
+### get grounding objects
 
-The example below demonstrates how to perform video question answering with keyframe searching framework. This example uses LLaVA-OneVision as the VLM and YOLO-World for keyframe searching.
-
-```python
+```bash
 export OPENAI_API_KEY=your_openai_api_key
 
-python TStar/TStarFramework.py \
-    --video_path /path/to/LV-Haystack/38737402-19bd-4689-9e74-3af391b15feb.mp4 \
-    --question "What is the color of the couch?" \
-    --options "A) Red, B) Blue, C) Green, D) Yellow" \
-    --llava_model_path lmms-lab/llava-onevision-qwen2-7b-ov \
-    --yolo_config_path ./YOLOWorld/configs/yolo_config.py \
-    --yolo_checkpoint_path ./pretrained/yolo_checkpoint.pth \
-    --search_nframes 8 \
-    --image_grid_shape 8 8 \
-    --confidence_threshold 0.6 \
-    --device cuda:0
+python scripts/get_Tstar_grounding_objects.py \
+    --dataset VideoMME \
+    --video_root ./Datasets/ego4d/ego4d_data/v1/256p \
+    --obj_path ./runs/obj/obj_result.json 
 ```
+Running the command above will ground objects and relations using LLMs(gpt-4o) for your Video QA dataset. Currently we support LongVideoBench and VideoMME. You can add customized json parsing function in `utils/data_loader.py` for other Video QA datasets. [video_root] stands for the root directory where the videos are saved. The object grounding results will be saved in [obj_path], and the json file should look like:
 
-
-## Test VL-HayStack
-To evaluate T* on a dataset (e.g., LV-Haystack), use the following command:
-
-```python
-python TStar/val_LV_Haystack.py \
-    --input_json ./Datasets/Haystack-Bench/annotations.json \
-    --output_json ./Resoults/Haystack_Bench_Seaching.json \
-    --video_dir ./Data/Haystack-Bench/videos \
-    --llava_model_path lmms-lab/llava-onevision-qwen2-7b-ov \
-    --yolo_config_path ./YOLOWorld/configs/pretrain/yolo_world_v2_xl_vlpan_bn.py \
-    --yolo_checkpoint_path ./pretrained/yolo_checkpoint.pth \
-    --search_nframes 8 \
-    --image_grid_shape 8 8 \
-    --confidence_threshold 0.5 \
-    --output_dir ./outputs \
-    --device cuda:0
-```
-
-## Searching KeyFrame for Your Dataset
-
-### Preparing Your Dataset
-To process your own dataset with VL-Haystack, you need to prepare a JSON file describing the dataset. The JSON file should follow the format below:
-<details>
-  <summary>Click to expand JSON examples!</summary>
-  
-```bash
+```json
 [
     {
-        "file_name": "example_video.mp4",
-        "question": "What is the color of the couch?",
-        "choices": {
-            "A": "Red",
-            "B": "Blue",
-            "C": "Green",
-            "D": "Yellow"
+        "video_id": "fFjv93ACGo8",
+        "video_path": "/data/guoweiyu/new-VL-Haystack/VL-Haystack/Datasets/Video-MME/videos/data/fFjv93ACGo8.mp4",
+        "question": "When demonstrating the Germany modern Christmas tree is initially decorated with apples, candles and berries, which kind of the decoration has the largest number?",
+        "options": "A) Apples.\nB) Candles.\nC) Berries.\nD) The three kinds are of the same number.",
+        "answer": "C",
+        "gt_frame_index": [],
+        "duration_group": "short",
+        "position": [],
+        "grounding_objects": {
+            "target_objects": [
+                "apples",
+                "candles",
+                "berries"
+            ],
+            "cue_objects": [
+                "Christmas tree",
+                "decorations",
+                "green branches"
+            ],
+            "relations": [
+                [
+                    "apples",
+                    "Christmas tree",
+                    "spatial"
+                ],
+                [
+                    "candles",
+                    "Christmas tree",
+                    "spatial"
+                ],
+                [
+                    "berries",
+                    "Christmas tree",
+                    "spatial"
+                ]
+            ]
         },
-        "frame_indexes": [10, 50, 100]  // Optional: Use this for specific frame sampling
+        "task_type": "Counting Problem"
     },
-    {
-        "file_name": "another_video.mp4",
-        "question": "What object is next to the chair?",
-        "choices": {
-            "A": "Table",
-            "B": "Lamp",
-            "C": "Sofa",
-            "D": "Bookshelf"
-        }
-    }
-]
+    ...
+]    
 ```
-</details>
 
+### search key frames
 
-### Running the Framework on Your Dataset
-
-```python
-python TStar/val_LV_Haystack.py \
+``` bash
+python scripts/get_Tstar_key_frames.py \
+    --obj_path ./runs/obj/obj_result.json \
+    --kfs_path ./runs/kfs/kfs_result.json
 ```
- 
 
-# Jinhui
-
-export https_proxy="http://10.120.16.212:20000"; export http_proxy="http://10.120.16.212:20000"; export all_proxy="socks5://10.120.16.212:20000"
+Then we can move to the next and search key frames based on previous object grounding results. We only need to specify an object grouding result file and the output key frame search result path. For a quick start, we already provide some raw experimental results in `runs/`, which can be used for a simple test.
 

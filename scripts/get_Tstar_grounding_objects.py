@@ -32,8 +32,8 @@ def parse_arguments() -> argparse.Namespace:
     # Data meta processing arguments
     parser.add_argument('--dataset', type=str, default="LongVideoBench", help='The video dataset used for processing.')
     parser.add_argument('--dataset_meta', type=str, default="LVHaystack/LongVideoHaystack", help='Path to the input JSON file for batch processing.')
-    parser.add_argument('--video_root', type=str, default='/data/guoweiyu/new-VL-Haystack/VL-Haystack/Datasets/ego4d/ego4d_data/v1/256p', help='Root directory where the input video files are stored.')
-    parser.add_argument('--results_dir', type=str, default='./results/object_grounding/', help='Path to save the batch processing results.')
+    parser.add_argument('--video_root', type=str, default='./Datasets/ego4d/ego4d_data/v1/256p', help='Root directory where the input video files are stored.')
+    parser.add_argument('--obj_path', type=str, default='./runs/obj/obj_result.json', help='Path to save the object grounding results.')
     
     # Common arguments
     parser.add_argument('--config_path', type=str, default="./YOLO-World/configs/pretrain/yolo_world_v2_xl_vlpan_bn_2e-3_100e_4x8gpus_obj365v1_goldg_train_lvis_minival.py", help='Path to the YOLO configuration file.')
@@ -128,10 +128,7 @@ def main():
         device=args.device
     )
 
-    results = []
-    output_json = args.results_dir + "obj_IMAGE_ONLY" + args.dataset + "_" + args.backend + "_" + \
-        args.prompt_type + "_vid" + str(args.upload_video) + ".json"
-    
+    results = []    
     for idx, data_item in enumerate(dataset):
         
         print(f"Processing {idx+1}/{len(dataset)}: {data_item['video_id']}")
@@ -155,10 +152,10 @@ def main():
         data_item.update(result)        
         results.append(data_item)
 
-    with open(output_json, 'w', encoding='utf-8') as f_out:
+    with open(args.obj_path, 'w', encoding='utf-8') as f_out:
         json.dump(results, f_out, indent=4, ensure_ascii=False)
     
-    print(f"Batch processing completed. Results saved to {output_json}")        
+    print(f"Batch processing completed. Results saved to {args.obj_path}")        
         
 if __name__ == "__main__":    
     main()

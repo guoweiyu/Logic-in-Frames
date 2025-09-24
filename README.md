@@ -21,6 +21,12 @@ git clone https://github.com/LLaVA-VL/LLaVA-NeXT
 git clone --recursive https://github.com/AILab-CVC/YOLO-World.git
 ```
 
+### Environment
+```bash
+conda env create -f environment.yml
+conda activate haystack
+```
+
 ### Structure:
 ```bash
 VL-Haystack/

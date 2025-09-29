@@ -27,7 +27,7 @@ conda env create -f environment.yml
 conda activate haystack
 ```
 
-If you encounter any problems when installing mmcv, mmyolo or other packages, try to follow this [official guide](https://mmyolo.readthedocs.io) for help.
+Currently, the CUDA version in our experimental setup is 12.1. If you encounter any problems when installing mmcv, mmyolo or other packages with different CUDA versions, try to follow this [official guide](https://mmyolo.readthedocs.io) for help..
 
 ### Structure:
 ```bash

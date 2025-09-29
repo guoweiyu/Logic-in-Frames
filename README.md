@@ -27,7 +27,7 @@ conda env create -f environment.yml
 conda activate haystack
 ```
 
-If you encounter any problems when installing mmcv, mmyolo or other packages, try to follow this ![https://mmyolo.readthedocs.io](official guide) for help.
+If you encounter any problems when installing mmcv, mmyolo or other packages, try to follow this !(official guide)[https://mmyolo.readthedocs.io] for help.
 
 ### Structure:
 ```bash

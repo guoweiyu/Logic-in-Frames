@@ -2,14 +2,6 @@
 
 Paper: [https://arxiv.org/abs/2503.13139](https://arxiv.org/abs/2503.13139)
 
-**TStar** is a comprehensive framework designed to integrate **KeyFrame Searching** into Vision-Language Models (VLMs) to enhance Video Question Answering (VQA). By leveraging efficient keyframe searching, TStar dynamically identifies relevant frames in videos, enabling state-of-the-art VLMs like **LLaVA** to achieve improved performance in understanding and reasoning over video data.
-
-## Features
-- **Keyframe Searching**: Dynamically detects and extracts relevant keyframes.
-- **Modular Design**: Easily integrates various grounding and searching backends.
-- **Efficient Video QA**: Combines T* searching with advanced VQA.
-
----
 
 ## Getting Started
 ### Installation

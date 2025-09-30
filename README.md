@@ -1,5 +1,6 @@
 # VSLS: Visual Semantic-Logical Keyframe Search Framework
 
+Paper: [https://arxiv.org/abs/2503.13139](https://arxiv.org/abs/2503.13139)
 
 **TStar** is a comprehensive framework designed to integrate **KeyFrame Searching** into Vision-Language Models (VLMs) to enhance Video Question Answering (VQA). By leveraging efficient keyframe searching, TStar dynamically identifies relevant frames in videos, enabling state-of-the-art VLMs like **LLaVA** to achieve improved performance in understanding and reasoning over video data.
 
@@ -117,5 +118,24 @@ python scripts/get_Tstar_key_frames.py \
     --kfs_path ./runs/kfs/kfs_result.json
 ```
 
-Then we can move to the next and search key frames based on previous object grounding results. We only need to specify an object grouding result file and the output key frame search result path. For a quick start, we already provide some raw experimental results in `runs/`, which can be used for a simple test.
+Then we can move to the next and search key frames based on previous object grounding results. We only need to specify an object grouding result file and the output key frame search result path. For a quick start, we already provide some raw experimental results in `runs/`, which can be used for a quick start.
+
+## Support
+
+If you run into any issues, please open a new GitHub issue. If you do not receive a response within 2 business days, please email Weiyu Guo (wguo395@connect.hkust-gz.edu.cn) to bring the issue to his attention.
+
+
+## Citation
+
+If you use our code in your work, please cite [our paper](https://arxiv.org/abs/2503.13139):
+
+```bibtex
+@article{guo2025logic,
+  title={Logic-in-frames: Dynamic keyframe search via visual semantic-logical verification for long video understanding},
+  author={Guo, Weiyu and Chen, Ziyang and Wang, Shaoguang and He, Jianxiang and Xu, Yijie and Ye, Jinhui and Sun, Ying and Xiong, Hui},
+  journal={arXiv preprint arXiv:2503.13139},
+  year={2025}
+}
+```
+
 

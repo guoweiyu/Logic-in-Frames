@@ -39,7 +39,6 @@ gt_indexes_seconds = dataset['indexes_seconds']
 # ours_lvbench_path = "data/lvbench/lvbench_XL_4methods_probs.json"
 ours_lvbench_path = "data/lvbench/KFS_lvbench_XL_allinone.json"
 # A[0].keys()
-# dict_keys(['video_id', 'question', 'question_wo_referring_query', 'candidates', 'correct_choice', 'position', 'topic_category', 'question_category', 'level', 'id', 'video_path', 'subtitle_path', 'duration_group', 'starting_timestamp_for_subtitles', 'duration', 'view_count', 'outputs', 'baseline_answer', 'search_predict_answer', 'best_predict_answer', 'priority_objects', 'yolo_score', 'distributions_history', 'keyframe_distributions', 'iteration', 'KSF_sec_32', 'KSF_sec_8', 'TStar_RL_8frames_sec', 'TStar_YOLO_8frames_sec', 'TStar_Attention_8frames_sec', 'TStar_YOLO_32frames_sec', 'Uniform_32frames_sec', 'Uniform_8frames_sec'])
 breakpoint()
 prf_scores = calculate_prf([indexes_seconds], [indexes_seconds])
 

@@ -27,14 +27,14 @@ Currently, the CUDA version in our experimental setup is 12.1. If you encounter 
 VL-Haystack/
 ├── LLaVA-NeXT/                # Query grounding and QA interface (LLaVA or skip by using GPT-4o-API)
 ├── YOLO-World/                # Heuristic-based image scoring and searching (YOLO)
-├── TStar/                     # Core T* searching and framework integration
+├── VSLS/                     # Core T* searching and framework integration
 │   ├── interface_llm.py       # LLM-based interface for question grounding and answering
 │   ├── interface_yolo.py      # YOLO-based object detection interface
 │   ├── interface_searcher.py  # Searching logic for T* heuristic processing
-│   ├── TStarFramewor.py  # Demonstration class for integrating T* searching with QA
+│   ├── VSLSFramewor.py  # Demonstration class for integrating T* searching with QA
 ├── scripts              # Script for running VSLS pipeline
-│   ├── get_Tstar_grounding_objects.py  # Grounding objects and relations for given Video QA dataset 
-│   ├── ger_Tstar_key_frames.py # Performing keyframe search based on object grounding results
+│   ├── get_VSLS_grounding_objects.py  # Grounding objects and relations for given Video QA dataset 
+│   ├── ger_VSLS_key_frames.py # Performing keyframe search based on object grounding results
 │   ├── ger_qa_results.py # Feeding keyframes into VLM to get qa results
 
 
@@ -49,7 +49,7 @@ VL-Haystack/
 ```bash
 export OPENAI_API_KEY=your_openai_api_key
 
-python scripts/get_Tstar_grounding_objects.py \
+python scripts/get_VSLS_grounding_objects.py \
     --dataset VideoMME \
     --video_root ./Datasets/ego4d/ego4d_data/v1/256p \
     --obj_path ./runs/obj/obj_result.json 
@@ -60,7 +60,7 @@ Running the command above will ground objects and relations using LLMs(gpt-4o) f
 [
     {
         "video_id": "fFjv93ACGo8",
-        "video_path": "/data/guoweiyu/new-VL-Haystack/VL-Haystack/Datasets/Video-MME/videos/data/fFjv93ACGo8.mp4",
+        "video_path": "/data/new-VL-Haystack/VL-Haystack/Datasets/Video-MME/videos/data/fFjv93ACGo8.mp4",
         "question": "When demonstrating the Germany modern Christmas tree is initially decorated with apples, candles and berries, which kind of the decoration has the largest number?",
         "options": "A) Apples.\nB) Candles.\nC) Berries.\nD) The three kinds are of the same number.",
         "answer": "C",
@@ -105,7 +105,7 @@ Running the command above will ground objects and relations using LLMs(gpt-4o) f
 ### search key frames
 
 ``` bash
-python scripts/get_Tstar_key_frames.py \
+python scripts/get_VSLS_key_frames.py \
     --obj_path ./runs/obj/obj_result.json \
     --kfs_path ./runs/kfs/kfs_result.json
 ```

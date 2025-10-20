@@ -9,7 +9,7 @@ import argparse # 1. 导入 argparse 库
 
 # def LVHaystack2TStar_json(input_path: str, video_root: str) -> List[dict]:
 def LVHaystack2TStar_json(video_root: str, 
-                          input_path: str = "/data/guoweiyu/new-VL-Haystack/VL-Haystack/Datasets/LVBench/lvb_val.json") -> List[dict]:
+                          input_path: str = "/data/yourname/new-VL-Haystack/VL-Haystack/Datasets/LVBench/lvb_val.json") -> List[dict]:
     """Load and transform the LVHaystack dataset."""
     print(f"Processing LVHaystack from: {input_path}")
     with open(input_path, 'r', encoding='utf-8') as js_file:

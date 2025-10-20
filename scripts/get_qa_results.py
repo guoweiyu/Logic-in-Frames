@@ -17,7 +17,7 @@ from tqdm import tqdm
 import numpy as np
 
 sys.path.append('./')
-from TStar.interface_llm import TStarUniversalGrounder
+from VSLS.interface_llm import VSLSUniversalGrounder
 
 import argparse
 import datetime
@@ -86,7 +86,7 @@ def extract_frames(video_path: str, frame_indices: List[int] = None, numframe: i
 
 def compute_qa_accuracy(
     result_data: List[Dict[str, Any]],
-    tstar_grounder: TStarUniversalGrounder,
+    vsls_grounder: VSLSUniversalGrounder,
     frame_key: str ="uniform",
     ground_truth_key: str = "answer",
     output_file: str = "Rebuttal/qa_results.jsonl",
@@ -164,7 +164,7 @@ def compute_qa_accuracy(
             # perform QA inference
             else:
                 try:
-                    pred_answer = tstar_grounder.inference_qa(
+                    pred_answer = vsls_grounder.inference_qa(
                         frames=frames,
                         question=question,
                         options=options,
@@ -217,7 +217,7 @@ def parse_arguments() -> argparse.Namespace:
     Returns:
         argparse.Namespace: Parsed arguments.
     """
-    parser = argparse.ArgumentParser(description="TStarSearcher: Video Frame Search and QA Tool")
+    parser = argparse.ArgumentParser(description="Searcher: Video Frame Search and QA Tool")
 
     # Data meta processing arguments
     parser.add_argument('--backend', type=str, default="gpt4", help='The backend used for question qa.')
@@ -233,7 +233,7 @@ if __name__ == "__main__":
     np.random.seed(2025)
     args = parse_arguments()
 
-    tstar_grounder = TStarUniversalGrounder(
+    vsls_grounder = VSLSUniversalGrounder(
         backend=args.backend,
         num_frames=8
     )
@@ -247,7 +247,7 @@ if __name__ == "__main__":
 
     correct_table, qa_results = compute_qa_accuracy(
         result_data=result_data,
-        tstar_grounder=tstar_grounder,
+        vsls_grounder=vsls_grounder,
         ground_truth_key="answer",
         frame_key=args.frame_key,
         frame_num=args.frame_num,

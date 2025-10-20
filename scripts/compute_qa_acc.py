@@ -90,6 +90,6 @@ def print_results(results):
 
 if __name__ == "__main__":
     answer_type = "uniform_pred_answer"
-    data = load_data("/data/guoweiyu/new-VL-Haystack/VL-Haystack/results/rebuttal/2025-07-29-final_qa_results/2025-07-29-11-53-59qa_4frames_llava_LongVideoBench_uniform.json", answer_type=answer_type)
+    data = load_data("/data/new-VL-Haystack/VL-Haystack/results/rebuttal/2025-07-29-final_qa_results/2025-07-29-11-53-59qa_4frames_llava_LongVideoBench_uniform.json", answer_type=answer_type)
     results = calculate_accuracy(data,answer_type=answer_type)
     print_results(results)

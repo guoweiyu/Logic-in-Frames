@@ -1,8 +1,4 @@
-# Follow the below installation guideline. You can run install.sh directly after creating the environment
 
-# create environment. Note that python=3.9
-# conda create --name tstar python=3.9 # mmdet's forced dependency for YoloWorld
-# conda activate tstar
 
 # Optional. Do this if you want to load LLaVA-NeXT to understand videos; No need to do this if you want GPT-4 for VQA
 # git clone https://github.com/LLaVA-VL/LLaVA-NeXT

@@ -67,7 +67,7 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         '--result_path',
         type=str,
-        default="/data/guoweiyu/new-VL-Haystack/VL-Haystack/results/last_version/ablation/kfs_t2025-03-07-16-39-41.json",
+        default="/data/yourspace/new-VL-Haystack/VL-Haystack/results/last_version/ablation/kfs_t2025-03-07-16-39-41.json",
         help='Path to the input JSON file containing video analysis results.'
     )
     parser.add_argument(

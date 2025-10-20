@@ -29,5 +29,4 @@ dependencies:
     - transformers==4.28.0
     - albumentations
     - gradio
-  
-prefix: /data/guoweiyu/anaconda3/envs/haystack
+

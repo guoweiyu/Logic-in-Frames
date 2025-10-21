@@ -8,6 +8,7 @@ import sys
 import argparse
 import json
 import numpy as np
+import os
 
 sys.path.append('./')
 sys.path.append('./YOLO-World/')
@@ -144,7 +145,10 @@ def main():
 
     with open(args.obj_path, 'r', encoding='utf-8') as f_read:
         dataset = json.load(f_read)
-            
+    
+    if not os.path.exists(os.path.dirname(args.kfs_path)):
+        os.makedirs(os.path.dirname(args.kfs_path))
+
     for idx, data_item in enumerate(dataset):
         task_type = data_item.get('task_type', ' ')
         

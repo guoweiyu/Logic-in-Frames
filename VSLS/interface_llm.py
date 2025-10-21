@@ -184,15 +184,17 @@ class GPT4Interface:
         """
         self.url = "https://gpt-api.hkust-gz.edu.cn/v1/chat/completions"
         self.api_key = api_key
-        self.headers = {
-            "Content-Type": "application/json", 
-            "Authorization": "Bearer 11ce63c4e72f4187ab6c606405f32c12c2f11b76e55a4ce6ab3013d7e7815efb" #Please change your KEY. If your key is XXX, the Authorization is "Authorization": "Bearer XXX"
-        }
         self.model_name = model
         if api_key==None:
             self.api_key = os.getenv("OPENAI_API_KEY")
         if not self.api_key:
             raise ValueError("Environment variable OPENAI_API_KEY is not set.")
+    
+        self.headers = {
+            "Content-Type": "application/json", 
+            "Authorization": f"Bearer {self.api_key}" #Please change your KEY. If your key is XXX, the Authorization is "Authorization": "Bearer XXX"
+        }
+
         openai.api_key = self.api_key
 
     def inference_text_only(self, query: str, system_message: str = "You are a helpful assistant.", temperature: float = 0.7, max_tokens: int = 1000) -> str:

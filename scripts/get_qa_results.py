@@ -245,6 +245,9 @@ if __name__ == "__main__":
     with open(args.kfs_path, "r", encoding="utf-8") as f:
         result_data = json.load(f)
 
+    if not os.path.exists(os.path.dirname(args.qa_path)):
+        os.makedirs(os.path.dirname(args.qa_path))
+    
     correct_table, qa_results = compute_qa_accuracy(
         result_data=result_data,
         vsls_grounder=vsls_grounder,

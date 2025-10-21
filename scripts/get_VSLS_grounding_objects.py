@@ -8,6 +8,7 @@ import sys
 import argparse
 import json
 import numpy as np
+import os
 
 sys.path.append('./')
 sys.path.append('./YOLO-World/')
@@ -101,14 +102,14 @@ def main():
     args = parse_arguments()
     
     if args.dataset == "LongVideoBench":
-        dataset = LongVideoBench2TStar_json(video_root="/data/yourname/new-VL-Haystack/VL-Haystack/Datasets/LVBench/videos")
+        dataset = LongVideoBench2TStar_json(video_root="./Datasets/LVBench/videos")
         
     elif args.dataset == "LVHaystack":
         dataset = LVHaystack2TStar_json(video_root=args.video_root)
 
     
     elif args.dataset == "VideoMME":
-        dataset = VideoMME2TStar_json(video_root="/data/yourname/new-VL-Haystack/VL-Haystack/Datasets/Video-MME/videos/data")
+        dataset = VideoMME2TStar_json(video_root="./Datasets/Video-MME/videos/data")
 
 
     print(len(dataset), "%"*30)
@@ -149,6 +150,9 @@ def main():
                 
         data_item.update(result)        
         results.append(data_item)
+    
+    if not os.path.exists(os.path.dirname(args.obj_path)):
+        os.makedirs(os.path.dirname(args.obj_path))
 
     with open(args.obj_path, 'w', encoding='utf-8') as f_out:
         json.dump(results, f_out, indent=4, ensure_ascii=False)

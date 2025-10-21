@@ -2,8 +2,8 @@ import os
 from typing import Dict, Optional, List
 import re
 import sys
-sys.path.append("/data/yourname/new-VL-Haystack/VL-Haystack/LLaVA-NeXT")
-sys.path.append("/data/yourname/new-VL-Haystack/VL-Haystack/VSLS")
+sys.path.append("./LLaVA-NeXT")
+sys.path.append("./VSLS")
 import openai
 from typing import List, Dict
 from PIL import Image

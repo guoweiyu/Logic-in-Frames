@@ -1,21 +1,16 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
-from dataclasses import dataclass, field
 from typing import List, Optional, Tuple
 from decord import VideoReader, cpu
 from scipy.interpolate import UnivariateSpline
 import copy
 from tqdm import tqdm
-import os
-import sys
 import cv2
 import copy
-import logging
 
 # Assuming YoloWorldInterface is defined elsewhere and imported correctly
 # from your_project.yolo_interface import YoloWorldInterface
-# 导入自定义的 VSLS 接口
 from VSLS.interface_yolo import YoloWorldInterface, YoloInterface
 
 np.random.seed(2025)

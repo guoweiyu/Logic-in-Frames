@@ -19,7 +19,7 @@ def LVHaystack2TStar_json(video_root: str) -> List[dict]:
     ]
     """
 
-    with open("/data/yourname/new-VL-Haystack/VL-Haystack/Datasets/LVHaystack_tiny.json", 'r', encoding='utf-8') as js_file:
+    with open("./Datasets/LVHaystack_tiny.json", 'r', encoding='utf-8') as js_file:
         LVHaystact_testset = json.load(js_file)
         
         
@@ -144,7 +144,7 @@ def VideoMME2TStar_json(video_root: str) -> List[dict]:
         except Exception as e:
             print(f"Error processing entry {idx+1}: {str(e)}")
 
-    with open('/data/yourname/new-VL-Haystack/VL-Haystack/Datasets/Video-MME/test.json', 'w', encoding='utf-8') as file:
+    with open('./Datasets/Video-MME/test.json', 'w', encoding='utf-8') as file:
         json.dump(TStar_format_data, file, indent=4, ensure_ascii=False)
         
     return TStar_format_data
@@ -164,7 +164,7 @@ def LongVideoBench2TStar_json(video_root: str) -> List[dict]:
     ]
     """
 
-    with open("/data/yourname/new-VL-Haystack/VL-Haystack/Datasets/LVBench/lvb_val.json", 'r', encoding='utf-8') as file:
+    with open("./Datasets/LVBench/lvb_val.json", 'r', encoding='utf-8') as file:
         lvb_dataset = json.load(file)
     
 

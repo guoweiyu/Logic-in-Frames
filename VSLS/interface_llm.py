@@ -176,7 +176,7 @@ class LocalVLMInterface:
             return f"Error: {str(e)}"
 
 class GPT4Interface:
-    def __init__(self,model="gpt-4", api_key='11ce63c4e72f4187ab6c606405f32c12c2f11b76e55a4ce6ab3013d7e7815efb'):
+    def __init__(self,model="gpt-4", api_key=None):
         """
         Initialize the GPT-4 API client.
 
@@ -367,7 +367,7 @@ class VSLSUniversalGrounder:
             self.VLM_model_interfance = LocalVLMInterface(model_name=model_name, base_url=base_url)
 
         elif self.backend == "gpt4":
-            self.VLM_model_interfance = GPT4Interface(model=gpt4_model_name, api_key='11ce63c4e72f4187ab6c606405f32c12c2f11b76e55a4ce6ab3013d7e7815efb')
+            self.VLM_model_interfance = GPT4Interface(model=gpt4_model_name, api_key=None)
 
         else:
             raise ValueError("backend must be either 'llava', 'internvl', 'qwenvl' or 'gpt4'.")

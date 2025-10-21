@@ -54,6 +54,9 @@ python scripts/get_VSLS_grounding_objects.py \
     --video_root ./Datasets/ego4d/ego4d_data/v1/256p \
     --obj_path ./runs/obj/obj_result.json 
 ```
+
+To use gpt api service, you need first set the openai api key. We recommend you use environment variables for safety concern.
+
 Running the command above will ground objects and relations using LLMs(gpt-4o) for your Video QA dataset. Currently we support LongVideoBench and VideoMME. You can add customized json parsing function in `utils/data_loader.py` for other Video QA datasets. [video_root] stands for the root directory where the videos are saved. The object grounding results will be saved in [obj_path], and the json file should look like:
 
 ```json

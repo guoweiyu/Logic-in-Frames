@@ -366,7 +366,7 @@ class VSLSSearcher:
                         self.score_distribution[frame_idx]/(abs(offset) + 1) 
                     )
 
-    def gaussioan_score_distribution(
+    def gaussian_score_distribution(
         self,
         non_visiting_frames: np.ndarray,
         score_distribution: np.ndarray,
@@ -508,7 +508,7 @@ class VSLSSearcher:
             )
 
         elif self.update_method == "gaussian":
-            self.P = self.gaussioan_score_distribution(
+            self.P = self.gaussian_score_distribution(
                 self.non_visiting_frames,
                 self.score_distribution,
                 len(self.score_distribution)

@@ -225,7 +225,7 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument('--frame_num', type=int, default=4, help='The number of frames fed into qa model.')
     parser.add_argument('--dataset', type=str, default="LongVideoBench", help='The Video QA dataset, currently support LongVideoBench or VideoMME')
     parser.add_argument('--kfs_path', type=str, default="./runs/kfs/kfs_rel0.3_VideoMME.json", help='input kfs json path')
-    parser.add_argument('--qa_path', type=str, default="./runs/qa/qa_VideoMME.json", help='output qa json path')
+    parser.add_argument('--qa_path', type=str, default="./runs/qa/qa_LongVideoBench.json", help='output qa json path')
     parser.add_argument('--sample_method', type=str, default="possibility", help="possibility or score")
     return parser.parse_args()
 

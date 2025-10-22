@@ -1,6 +1,14 @@
 import json
 import sys
+import argparse
 from collections import defaultdict
+
+def parse_arguments() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Searcher: Video Frame Search and QA Tool")
+
+    parser.add_argument('--answer_type', type=str, default="adaptive_pred_answer", help='answer type(uniform or adaptive).')
+    parser.add_argument('--qa_path', type=str, default="./runs/qa/qa_LongVideoBench.json", help='qa result json path')
+    return parser.parse_args() 
 
 def load_data(file_path,answer_type="uniform_pred_answer"):
     """加载并验证JSON数据结构"""
@@ -88,8 +96,9 @@ def print_results(results):
     print("{:<20} | {}".format("Total Valid Samples", total_valid))
 
 
+
 if __name__ == "__main__":
-    answer_type = "adaptive_pred_answer"
-    data = load_data("./runs/qa/qa_VideoMME.json", answer_type=answer_type)
-    results = calculate_accuracy(data,answer_type=answer_type)
+    args = parse_arguments()
+    data = load_data(args.qa_path, answer_type=args.answer_type)
+    results = calculate_accuracy(data,answer_type=args.answer_type)
     print_results(results)

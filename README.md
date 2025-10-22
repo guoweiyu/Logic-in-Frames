@@ -115,6 +115,24 @@ python scripts/get_VSLS_key_frames.py \
 
 Then we can move to the next and search key frames based on previous object grounding results. We only need to specify an object grouding result file and the output key frame search result path. For a quick start, we already provide some raw experimental results in `runs/`, which can be used for a quick start.
 
+### get qa results
+
+``` bash
+python scripts/get_qa_results.py \
+    --kfs_path ./runs/kfs/kfs_result.json \
+    --qa_path ./runs/qa/qa_results.json
+```
+In this step, we extract frames based on the key-frame search results and feed them into the target VLM to get the final qa answers. The qa results will be saved as a json file for further statistical analysis.
+
+### compute qa accuracy
+``` bash
+python scripts/compute_qa_acc.py \
+    --qa_path ./runs/qa/qa_results.json \
+    --answer_type adaptive_pred_answer
+```
+
+In order to analyze qa results more flexibly, we implement an extra python script where you can your customized save&load logics here.
+
 ## Support
 
 If you run into any issues, please open a new GitHub issue. If you do not receive a response within 2 business days, please email Weiyu Guo (wguo395@connect.hkust-gz.edu.cn) to bring the issue to his attention.

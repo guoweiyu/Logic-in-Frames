@@ -558,7 +558,7 @@ class VSLSSearcher:
                             frame_confidences[j] = frame_confidences[j] + RELATION_ALPHA * TIME_ALPHA
                             self.satisfied_relations[rel_idx] = True
                             
-            elif relation == "causal":
+            elif rel_type == "causal":
                 # 检查物体出现的先后顺序
                 for i in range(len(frame_detected_objects)):
                     for j in range(i, len(frame_detected_objects)):

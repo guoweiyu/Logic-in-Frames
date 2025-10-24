@@ -140,7 +140,7 @@ If you run into any issues, please open a new GitHub issue. If you do not receiv
 
 ## Citation
 
-If you use our code in your work, please cite [our paper](https://arxiv.org/abs/2503.13139):
+If you found our paper helpful or used our code in your work, please cite [our paper](https://arxiv.org/abs/2503.13139):
 
 ```bibtex
 @article{guo2025logic,

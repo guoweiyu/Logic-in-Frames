@@ -44,8 +44,7 @@ def main():
     """
     Main function to execute VSLSSearcher.
     """
-    # os.environ['OPENAI_API_KEY'] = 'sk-QeYl4dgQWWCZVpft00D08560A33644F7A2D66b4406A7De96'
-    os.environ['OPENAI_API_KEY'] = 'sk-QeYl4dgQWWCZVpft00D08560A33644F7A2D66b4406A7De96'
+    os.environ['OPENAI_API_KEY'] = 'your_openai_api_key_here'  # Replace with your actual OpenAI API key
     args = parse_arguments()
 
     # Initialize Grounder

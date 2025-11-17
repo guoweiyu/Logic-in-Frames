@@ -37,9 +37,19 @@ Then create the environment:
 ```bash
 conda env create -f environment.yml
 conda activate haystack
+# Make 'sys.path' include the directory which contains YOLO-Wolrd
+export PYTHONPATH=$PYTHONPATH:your_YOLO-World_path
+```
+Potential issues encountered during installation：
+```bash
+# 1）PackagesNotFoundError: - pip=2.24.2*
+# Set pip in environment.yml to pip >= 20.0
+# 2）ModuleNotFoundError: No module named ‘mmcv._ext’, please try installing
+pip install mmcv==2.0.0rc4
 ```
 
-We used CUDA 12.1. If your CUDA version is different and `mmcv` or `mmyolo` fails, please follow the official guide: https://mmyolo.readthedocs.io.
+We used CUDA 12.1. If your CUDA version is different and encountered
+ and `mmcv` or `mmyolo` fails, please follow the official guide: https://mmyolo.readthedocs.io.
 
 ## 2. Repository Structure 📁
 
@@ -83,7 +93,7 @@ Run:
 ```bash
 python scripts/get_VSLS_grounding_objects.py \
     --dataset VideoMME \
-    --video_root ./Datasets/ego4d/ego4d_data/v1/256p \
+    --video_root ./Datasets/VideoMME \
     --obj_path ./runs/obj/obj_result.json
 ```
 
